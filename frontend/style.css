@@ -234,3 +234,62 @@ body.hide-details table tbody td:nth-child(9)  /* Coluna Valor Atual (9ª td) */
         font-size: 0.8rem;
     }
 }
+
+#resumoCarteira {
+    background-color: #e6f7ff; /* Um azul claro */
+    border: 1px solid #91d5ff; /* Borda azul mais escura */
+    border-radius: 8px;
+    padding: 1rem 2rem;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    max-width: 900px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    text-align: center;
+}
+
+#resumoCarteira p {
+    margin: 0.5rem 0;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #004085; /* Azul escuro para o texto */
+}
+
+#resumoCarteira p span {
+    font-weight: normal;
+    color: #333; /* Volta para a cor normal para os valores */
+}
+
+/* Estilo para lucro/prejuízo no resumo */
+#lucroPrejuizoDisplay {
+    font-weight: bold;
+}
+#lucroPrejuizoDisplay.positivo {
+    color: green;
+}
+#lucroPrejuizoDisplay.negativo {
+    color: red;
+}
+
+/* ... (seu CSS existente) ... */
+
+/* Regra para ocultar a seção de resumo da carteira */
+body.hide-details #resumoCarteira {
+    display: none !important; /* Esconde o bloco completo de resumo */
+}
+
+/* ... (suas regras existentes para ocultar colunas da tabela) ... */
+body.hide-details #thQuantidade,
+body.hide-details #thPrecoMedio,
+body.hide-details #thTotalInvestido,
+body.hide-details #thValorAtual {
+    display: none !important;
+}
+
+body.hide-details table tbody td:nth-child(6),
+body.hide-details table tbody td:nth-child(7),
+body.hide-details table tbody td:nth-child(8),
+body.hide-details table tbody td:nth-child(9) {
+    display: none !important;
+}
+
+/* ... (restante do seu CSS) ... */

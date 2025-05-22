@@ -59,10 +59,24 @@ async function carregarCarteira() {
     const tabela = document.querySelector('#tabelaCarteira tbody');
     tabela.innerHTML = '<tr><td colspan="11" style="text-align: center;">Carregando...</td></tr>';
 
+    // Referências aos elementos de display dos totais no topo
+    const totalInvestidoDisplay = document.getElementById('totalInvestidoDisplay');
+    const valorAtualCarteiraDisplay = document.getElementById('valorAtualCarteiraDisplay');
+    const lucroPrejuizoDisplay = document.getElementById('lucroPrejuizoDisplay');
+
+    // Inicializa os totais globais
+    let totalInvestidoGlobal = 0;
+    let valorAtualCarteiraGlobal = 0;
+
     const carteira = await buscarCarteira();
 
     if (carteira.length === 0) {
         tabela.innerHTML = '<tr><td colspan="11" style="text-align: center;">Nenhum ativo na carteira.</td></tr>';
+        // Zera os totais no display se a carteira estiver vazia
+        totalInvestidoDisplay.textContent = 'R$ 0,00';
+        valorAtualCarteiraDisplay.textContent = 'R$ 0,00';
+        lucroPrejuizoDisplay.textContent = 'R$ 0,00';
+        lucroPrejuizoDisplay.classList.remove('positivo', 'negativo'); // Remove classes de cor
         return;
     }
 
@@ -97,9 +111,13 @@ async function carregarCarteira() {
                     </td>
                 </tr>`;
         } else {
-            const totalInvestido = ativo.quantidade * ativo.precoMedio;
-            const valorAtualMercado = ativo.quantidade * cotacao.valor;
+            const totalInvestidoAtivo = ativo.quantidade * ativo.precoMedio;
+            const valorAtualAtivo = ativo.quantidade * cotacao.valor;
             const diferenca = (cotacao.valor - ativo.precoMedio) * ativo.quantidade;
+
+            // Acumula os totais globais
+            totalInvestidoGlobal += totalInvestidoAtivo;
+            valorAtualCarteiraGlobal += valorAtualAtivo;
 
             rowHtml = `
                 <tr>
@@ -110,8 +128,8 @@ async function carregarCarteira() {
                     <td>${cotacao.data}</td>
                     <td><input type="number" min="0" step="any" class="quantidadeInput" data-ticker="${ativo.ticker}" value="${ativo.quantidade}" /></td>
                     <td><input type="number" min="0" step="any" class="precoMedioInput" data-ticker="${ativo.ticker}" value="${ativo.precoMedio}" /></td>
-                    <td>R$ ${totalInvestido.toFixed(2)}</td>
-                    <td>R$ ${valorAtualMercado.toFixed(2)}</td>
+                    <td>R$ ${totalInvestidoAtivo.toFixed(2)}</td>
+                    <td>R$ ${valorAtualAtivo.toFixed(2)}</td>
                     <td style="color: ${diferenca >= 0 ? 'green' : 'red'}">R$ ${diferenca.toFixed(2)}</td>
                     <td>
                         <button class="removerBtn" data-ticker="${ativo.ticker}" aria-label="Remover ${ativo.ticker}">
@@ -135,6 +153,19 @@ async function carregarCarteira() {
             });
         }
     });
+
+    // Exibe os totais calculados no topo da página
+    totalInvestidoDisplay.textContent = `R$ ${totalInvestidoGlobal.toFixed(2)}`;
+    valorAtualCarteiraDisplay.textContent = `R$ ${valorAtualCarteiraGlobal.toFixed(2)}`;
+
+    const lucroPrejuizoGlobal = valorAtualCarteiraGlobal - totalInvestidoGlobal;
+    lucroPrejuizoDisplay.textContent = `R$ ${lucroPrejuizoGlobal.toFixed(2)}`;
+    lucroPrejuizoDisplay.classList.remove('positivo', 'negativo'); // Limpa classes antes de adicionar
+    if (lucroPrejuizoGlobal > 0) {
+        lucroPrejuizoDisplay.classList.add('positivo');
+    } else if (lucroPrejuizoGlobal < 0) {
+        lucroPrejuizoDisplay.classList.add('negativo');
+    }
 
     adicionarListenersInputs();
     adicionarListenersRemover();
@@ -169,7 +200,7 @@ function adicionarListenersInputs() {
                     return;
                 }
                 carregarCarteira();
-            } catch (e) { // Adicionado o bloco catch que estava faltando
+            } catch (e) {
                 console.error('Erro ao atualizar ativo:', e);
                 alert('Erro ao atualizar ativo. Verifique o console.');
             }
@@ -195,7 +226,7 @@ function adicionarListenersRemover() {
                     return;
                 }
                 carregarCarteira();
-            } catch (e) { // Bloco catch adicionado aqui para resolver o erro
+            } catch (e) {
                 console.error('Erro ao remover ativo:', e);
                 alert('Erro ao remover ativo. Verifique o console.');
             }
@@ -266,7 +297,7 @@ function updateToggleButtonIcon(isHidden) {
     const toggleViewModeBtn = document.getElementById('toggleViewModeBtn');
     if (!toggleViewModeBtn) return;
 
-    toggleViewModeBtn.innerHTML = '';
+    toggleViewModeBtn.innerHTML = ''; // Limpa o conteúdo atual
 
     const parser = new DOMParser();
     let svgDoc;
@@ -278,7 +309,7 @@ function updateToggleButtonIcon(isHidden) {
         svgDoc = parser.parseFromString(eyeOpenSvg, "image/svg+xml");
         toggleViewModeBtn.setAttribute('aria-label', 'Ocultar detalhes da carteira');
     }
-
+    
     toggleViewModeBtn.appendChild(svgDoc.documentElement);
 }
 
