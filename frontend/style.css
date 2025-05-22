@@ -7,94 +7,230 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-  }
-  
-  h1 {
+}
+
+h1 {
     color: #0050b3;
     margin-bottom: 1rem;
-  }
-  
-  #adicionarAtivo input {
+}
+
+/* Container do formulário de adicionar ativo */
+#adicionarAtivo {
+    display: flex;          /* Transforma em um container flexbox */
+    align-items: center;    /* Alinha itens verticalmente no centro */
+    flex-wrap: wrap;        /* Permite que os itens quebrem para a próxima linha em telas menores */
+    gap: 10px;              /* Espaçamento entre os itens */
+    margin-bottom: 1rem;    /* Espaço abaixo do formulário */
+    max-width: 900px;       /* Limita a largura para melhor visualização */
+    justify-content: center; /* Centraliza horizontalmente em telas maiores */
+}
+
+#adicionarAtivo input,
+#adicionarAtivo select,
+#adicionarAtivo button {
     padding: 0.5rem;
     font-size: 1rem;
-    margin: 0.3rem;
     border-radius: 6px;
     border: 1px solid #ccc;
+    margin: 0; /* Limpa margens padrão para o gap do flexbox controlar */
+}
+
+#adicionarAtivo input {
     width: 150px;
-  }
-  
-  #adicionarAtivo button {
+}
+
+#adicionarAtivo select {
+    width: 160px; /* Ajuste se necessário */
+    cursor: pointer;
+}
+
+#adicionarAtivo button {
     padding: 0.6rem 1.2rem;
-    font-size: 1rem;
-    border-radius: 6px;
     border: none;
     background-color: #0050b3;
     color: white;
     cursor: pointer;
-    margin-left: 0.5rem;
     transition: background-color 0.3s;
-  }
-  
-  #adicionarAtivo button:hover {
+}
+
+#adicionarAtivo button:hover {
     background-color: #003d80;
-  }
-  
-  table {
+}
+
+/* Estilo para o botão de toggle (o ícone de olho) */
+#toggleViewModeBtn {
+    padding: 0.6rem; 
+    border-radius: 6px;
+    border: none;
+    background-color: #28a745; /* Cor VERDE padrão para indicar "ativo/visível" */
+    color: white; /* Cor do ícone */
+    cursor: pointer;
+    transition: background-color 0.3s;
+
+    display: flex;          
+    justify-content: center; 
+    align-items: center;    
+    width: 40px;            
+    height: 40px;           
+}
+
+#toggleViewModeBtn:hover {
+    background-color: #218838; /* Verde mais escuro no hover */
+}
+
+/* Quando os detalhes estão ocultos, o botão de toggle fica VERMELHO */
+body.hide-details #toggleViewModeBtn {
+    background-color: #dc354f; /* Cor VERMELHA para indicar "oculto" */
+}
+
+body.hide-details #toggleViewModeBtn:hover {
+    background-color: #c82333; /* Vermelho mais escuro no hover */
+}
+
+#toggleViewModeBtn svg {
+    fill: currentColor; 
+    width: 24px; 
+    height: 24px;
+}
+
+
+table {
     margin-top: 2rem;
     border-collapse: collapse;
     width: 100%;
     max-width: 900px;
-  }
-  
-  thead th {
+    background-color: #fff; /* Fundo branco para a tabela */
+    box-shadow: 0 0 10px rgba(0,0,0,0.1); /* Sombra suave */
+    border-radius: 8px; /* Cantos arredondados */
+    overflow: hidden; /* Garante que os cantos arredondados funcionem com overflow */
+}
+
+thead th {
     background-color: #0050b3;
     color: white;
     padding: 0.7rem;
-    text-align: right;
-  }
-  
-  tbody td {
-    border-bottom: 1px solid #ddd;
+    text-align: center;
+    border-bottom: 2px solid #003d80;
+}
+
+tbody td {
+    border-bottom: 1px solid #eee; /* Linhas mais claras entre células */
     padding: 0.5rem;
     white-space: nowrap;
-    text-align: right;
-    
-  }
-  
-  input.quantidadeInput,
-  input.precoMedioInput {
+    text-align: right; /* Alinha números à direita */
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f9f9f9; /* Fundo zebrado para linhas pares */
+}
+
+tbody tr:hover {
+    background-color: #f0f0f0; /* Destaca linha ao passar o mouse */
+}
+
+/* Estilos para os campos de input dentro da tabela */
+input.quantidadeInput,
+input.precoMedioInput {
     width: 80px;
     padding: 0.3rem;
     font-size: 1rem;
     border-radius: 4px;
     border: 1px solid #ccc;
-  }
-  
-  button.removerBtn {
-    background-color: #d9534f;
+    text-align: right; /* Garante que o texto digitado também se alinha à direita */
+}
+
+/* Estilo para o botão de remover (ícone de lixeira) */
+button.removerBtn {
+    background-color: #d9534f; /* Vermelho */
     border: none;
-    color: white;
-    padding: 0.4rem 0.8rem;
+    color: white; /* Cor do ícone */
+    padding: 0.4rem; /* Padding menor para botões de ícone */
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s;
-  }
-  
-  button.removerBtn:hover {
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px; /* Tamanho fixo para o botão */
+    height: 32px;
+}
+
+button.removerBtn:hover {
     background-color: #c9302c;
-  }
-  
-  @media (max-width: 600px) {
+}
+
+button.removerBtn svg {
+    fill: currentColor;
+    width: 20px; /* Garante o tamanho do SVG */
+    height: 20px;
+}
+
+/* Estilos para o cabeçalho de categoria */
+.categoria-header td {
+    background-color: #e0e0e0; 
+    font-weight: bold;
+    text-align: left; 
+    padding: 10px;
+    border-bottom: 2px solid #ccc;
+    border-top: 1px solid #ccc; /* Linha superior para separar visualmente */
+    color: #0050b3;
+}
+.categoria-header h2 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+/* Regras para ocultar as colunas quando 'hide-details' está no body */
+body.hide-details #thQuantidade,
+body.hide-details #thPrecoMedio,
+body.hide-details #thTotalInvestido,
+body.hide-details #thValorAtual {
+    display: none; /* Esconde os cabeçalhos das colunas */
+}
+
+body.hide-details table tbody td:nth-child(6), /* Coluna Quantidade (6ª td) */
+body.hide-details table tbody td:nth-child(7), /* Coluna Preço Médio (7ª td) */
+body.hide-details table tbody td:nth-child(8), /* Coluna Total Investido (8ª td) */
+body.hide-details table tbody td:nth-child(9)  /* Coluna Valor Atual (9ª td) */
+{
+    display: none; /* Esconde as células de dados correspondentes */
+}
+
+/* Media Queries para responsividade */
+@media (max-width: 768px) {
     body {
-      padding: 1rem;
+        padding: 1rem;
     }
-  
-    #adicionarAtivo input {
-      width: 100px;
+
+    #adicionarAtivo {
+        flex-direction: column; /* Em telas menores, os itens do formulário ficam em coluna */
+        align-items: stretch; /* Estica os itens para preencher a largura */
+        gap: 0.5rem;
     }
-  
+
+    #adicionarAtivo input,
+    #adicionarAtivo select,
+    #adicionarAtivo button,
+    #toggleViewModeBtn { 
+        width: 100%; /* Ocupa a largura total */
+        box-sizing: border-box; /* Inclui padding e border na largura */
+        margin: 0; /* Remove margens extras */
+    }
+
     table {
-      font-size: 0.9rem;
+        font-size: 0.8rem;
+        min-width: unset; /* Remove min-width em telas pequenas */
     }
-  }
-  
+
+    thead th, tbody td {
+        padding: 0.3rem; /* Menos padding em telas menores */
+    }
+
+    /* Ajuste para inputs dentro da tabela em telas pequenas */
+    input.quantidadeInput,
+    input.precoMedioInput {
+        width: 60px;
+        font-size: 0.8rem;
+    }
+}
