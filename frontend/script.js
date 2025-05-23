@@ -1,4 +1,4 @@
-// --- Definição dos SVGs (sem alterações) ---
+// --- Ícones SVG (Completos) ---
 const eyeOpenSvg = `
     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#FFFFFF">
         <path d="M0 0h24v24H0V0z" fill="none"/>
@@ -17,19 +17,21 @@ const deleteIconSvg = `
         <path d="M16 9v10H8V9h8m-1.5-6h-5L9 3H7.5V1h9v2H15l-1.5-3zm4.5 4H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"/>
     </svg>
 `;
+const dragIconSvg = `
+    <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px" fill="#888888">
+        <path d="M0 0h24v24H0z" fill="none"/><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+    </svg>
+`;
 
-// --- Funções de API (sem alterações) ---
+// --- Funções de API ---
 async function buscarCarteira() {
     try {
         const res = await fetch('/api/carteira');
-        if (!res.ok) {
-            const errorText = await res.text();
-            throw new Error(`Erro ao buscar carteira: ${res.status} ${res.statusText} - ${errorText}`);
-        }
+        if (!res.ok) throw new Error(`Erro API carteira: ${res.statusText} (${res.status})`);
         return await res.json();
     } catch (e) {
-        console.error('Falha ao carregar carteira:', e);
-        alert('Falha ao carregar carteira. Verifique o console para mais detalhes.');
+        console.error('Falha CRÍTICA ao carregar carteira:', e);
+        alert('Falha CRÍTICA ao carregar carteira. Verifique o console.');
         return [];
     }
 }
@@ -38,132 +40,242 @@ async function buscarCotacao(ticker) {
     try {
         const res = await fetch(`/cotacao/${ticker}`);
         if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(`Erro na cotação para ${ticker}: ${res.status} ${res.statusText} - ${errorData.erro || 'Erro desconhecido'}`);
+            console.warn(`Cotação não encontrada ou erro para ${ticker}, status: ${res.status}`);
+            return null;
         }
-        return await res.json();
+        const data = await res.json();
+        if (data && typeof data.valor === 'number' && !isNaN(data.valor)) {
+            return data;
+        }
+        console.warn(`Dados de cotação inválidos para ${ticker}:`, data);
+        return null;
     } catch (e) {
-        console.error(`Erro ao buscar cotação para ${ticker}:`, e);
+        console.error(`Falha CRÍTICA ao buscar cotação para ${ticker}:`, e);
         return null;
     }
 }
 
-// --- Funções de Renderização (com a nova ordem) ---
+// --- Ordenação Manual ---
+function getSavedOrder() {
+    const savedOrder = localStorage.getItem('carteiraOrdem');
+    return savedOrder ? JSON.parse(savedOrder) : [];
+}
+
+function saveOrder(order) {
+    localStorage.setItem('carteiraOrdem', JSON.stringify(order));
+}
+
+// --- Função Principal de Renderização ---
 async function carregarCarteira() {
-    const tabela = document.querySelector('#tabelaCarteira tbody');
-    tabela.innerHTML = `<tr><td colspan="12" style="text-align: center;">Carregando...</td></tr>`;
+    console.log("Iniciando carregarCarteira (V28 - Reintroduzindo Cabeçalhos de Categoria)...");
+    const tabela = document.querySelector('#tabelaCarteira');
+    if (!tabela) { console.error('Elemento #tabelaCarteira não encontrado!'); return; }
+    tabela.innerHTML = `<tr><td colspan="13" style="text-align: center;">Carregando...</td></tr>`;
+
+    const isDetailsHidden = document.body.classList.contains('hide-details');
 
     const totalInvestidoDisplay = document.getElementById('totalInvestidoDisplay');
     const valorAtualCarteiraDisplay = document.getElementById('valorAtualCarteiraDisplay');
     const lucroPrejuizoDisplay = document.getElementById('lucroPrejuizoDisplay');
+    const lucroPrejuizoPorcentagemDisplay = document.getElementById('lucroPrejuizoPorcentagemDisplay');
+    
+    if (!totalInvestidoDisplay || !valorAtualCarteiraDisplay || !lucroPrejuizoDisplay || !lucroPrejuizoPorcentagemDisplay) {
+        console.error('Um ou mais elementos de totais não foram encontrados no HTML.');
+    }
 
     let totalInvestidoGlobal = 0;
     let valorAtualCarteiraGlobal = 0;
+    let carteira = await buscarCarteira();
 
-    const carteira = await buscarCarteira();
+    if (!carteira || carteira.length === 0) {
+        tabela.innerHTML = `<tr><td colspan="13" style="text-align: center;">Nenhum ativo na carteira.</td></tr>`;
+        if(totalInvestidoDisplay) totalInvestidoDisplay.textContent = 'R$ 0,00';
+        if(valorAtualCarteiraDisplay) valorAtualCarteiraDisplay.textContent = 'R$ 0,00';
+        if(lucroPrejuizoDisplay) lucroPrejuizoDisplay.textContent = 'R$ 0,00';
+        if(lucroPrejuizoPorcentagemDisplay) lucroPrejuizoPorcentagemDisplay.textContent = '0.00%';
+        if(lucroPrejuizoDisplay) lucroPrejuizoDisplay.classList.remove('positivo', 'negativo');
+        if(lucroPrejuizoPorcentagemDisplay) lucroPrejuizoPorcentagemDisplay.classList.remove('positivo', 'negativo');
+        return;
+    }
+    
+    const savedOrder = getSavedOrder();
+    if (savedOrder.length > 0) {
+        carteira.sort((a, b) => {
+            const indexA = savedOrder.indexOf(a.ticker);
+            const indexB = savedOrder.indexOf(b.ticker);
+            if (indexA > -1 && indexB > -1) return indexA - indexB;
+            if (indexA > -1) return -1;
+            if (indexB > -1) return 1;
+            return a.ticker.localeCompare(b.ticker);
+        });
+    }
 
-    if (carteira.length === 0) {
-        tabela.innerHTML = `<tr><td colspan="12" style="text-align: center;">Nenhum ativo na carteira.</td></tr>`;
-        totalInvestidoDisplay.textContent = 'R$ 0,00';
-        valorAtualCarteiraDisplay.textContent = 'R$ 0,00';
-        lucroPrejuizoDisplay.textContent = 'R$ 0,00';
-        lucroPrejuizoDisplay.classList.remove('positivo', 'negativo');
+    const promessas = carteira.map(ativo =>
+        buscarCotacao(ativo.ticker).then(cotacao => ({ ...ativo, cotacao }))
+    );
+
+    let resultadosCompletos;
+    try {
+        resultadosCompletos = await Promise.all(promessas);
+    } catch (error) {
+        console.error("Erro CRÍTICO no Promise.all ao buscar cotações:", error);
+        tabela.innerHTML = `<tr><td colspan="13" style="color:red; text-align:center;">Erro crítico ao carregar cotações. Verifique o console.</td></tr>`;
         return;
     }
 
-    const promessas = carteira.map(ativo => buscarCotacao(ativo.ticker).then(cotacao => ({ ativo, cotacao })));
-    const resultados = await Promise.all(promessas);
-
-    tabela.innerHTML = '';
-    const ativosAgrupados = {};
-
-    resultados.forEach(({ ativo, cotacao }) => {
-        const categoria = ativo.type || 'DESCONHECIDO';
-        if (!ativosAgrupados[categoria]) {
-            ativosAgrupados[categoria] = [];
+    // Passo 1: Calcular todos os totais por categoria e globais
+    const categoryTotals = {}; 
+    resultadosCompletos.forEach(item => {
+        const categoria = item.type || 'DESCONHECIDO';
+        if (!categoryTotals[categoria]) {
+            categoryTotals[categoria] = 0;
         }
 
-        let rowHtml;
-        if (!cotacao) {
-            rowHtml = `
-                <tr>
-                    <td>${ativo.ticker}</td>
-                    <td colspan="10" style="color: red; text-align: center;">Erro ao buscar cotação</td>
-                    <td>
-                        <button class="removerBtn" data-ticker="${ativo.ticker}" aria-label="Remover ${ativo.ticker}">
-                            ${deleteIconSvg}
-                        </button>
+        const qtd = (item && typeof item.quantidade === 'number' && !isNaN(item.quantidade)) ? item.quantidade : 0;
+        const pm = (item && typeof item.precoMedio === 'number' && !isNaN(item.precoMedio)) ? item.precoMedio : 0;
+        
+        totalInvestidoGlobal += qtd * pm;
+
+        if (item.cotacao && typeof item.cotacao.valor === 'number' && !isNaN(item.cotacao.valor)) {
+            const valorAtualAtivo = qtd * item.cotacao.valor;
+            if (typeof valorAtualAtivo === 'number' && !isNaN(valorAtualAtivo)) { // Checagem extra
+                 categoryTotals[categoria] += valorAtualAtivo;
+                 valorAtualCarteiraGlobal += valorAtualAtivo;
+            }
+        }
+    });
+
+    // Passo 2: Construir o HTML da tabela
+    let tableBodyHtml = '';
+    let renderedHeaders = new Set();
+
+    resultadosCompletos.forEach(item => {
+        const { type, ticker, quantidade, precoMedio, cotacao } = item;
+        const categoria = type || 'DESCONHECIDO';
+
+        if (!renderedHeaders.has(categoria)) {
+            const subtotalCalculado = categoryTotals[categoria] || 0;
+            const subtotalFormatado = (typeof subtotalCalculado === 'number' && !isNaN(subtotalCalculado))
+                ? subtotalCalculado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                : 'N/A';
+            const subtotalCell = isDetailsHidden ? '****' : subtotalFormatado;
+
+            tableBodyHtml += `
+                <tr class="categoria-header">
+                    <td colspan="13">
+                        <div class="categoria-header-content">
+                            <h2>${categoria}</h2>
+                            <span class="categoria-total-valor">${subtotalCell}</span>
+                        </div>
                     </td>
+                </tr>`;
+            renderedHeaders.add(categoria);
+        }
+
+        const qtdNum = (typeof quantidade === 'number' && !isNaN(quantidade)) ? quantidade : 0;
+        const pmNum = (typeof precoMedio === 'number' && !isNaN(precoMedio)) ? precoMedio : 0;
+
+        if (!cotacao || typeof cotacao.valor !== 'number' || isNaN(cotacao.valor)) {
+            tableBodyHtml += `
+                <tr data-ticker="${ticker}">
+                    <td class="drag-handle">${dragIconSvg}</td>
+                    <td>${ticker || 'N/A'}</td>
+                    <td colspan="10" style="color: red; text-align: center;">Erro ou dados de cotação inválidos</td>
+                    <td><button class="removerBtn" data-ticker="${ticker}" aria-label="Remover ${ticker}">${deleteIconSvg}</button></td>
                 </tr>`;
         } else {
-            const totalInvestidoAtivo = ativo.quantidade * ativo.precoMedio;
-            const valorAtualAtivo = ativo.quantidade * cotacao.valor;
+            const totalInvestidoAtivo = qtdNum * pmNum;
+            const valorAtualAtivo = qtdNum * cotacao.valor;
             const diferenca = valorAtualAtivo - totalInvestidoAtivo;
 
-            totalInvestidoGlobal += totalInvestidoAtivo;
-            valorAtualCarteiraGlobal += valorAtualAtivo;
+            const changePercentVal = (cotacao && typeof cotacao.changePercent === 'number' && !isNaN(cotacao.changePercent)) ? cotacao.changePercent : null;
+            const changePercentFormatted = changePercentVal !== null ? `${(changePercentVal * 100).toFixed(2)}%` : 'N/A';
+            const changePercentColor = changePercentVal !== null ? (changePercentVal >= 0 ? 'green' : 'red') : 'inherit';
+            
+            const diferencaCell = isDetailsHidden 
+                ? `<td>****</td>` 
+                : `<td style="color: ${diferenca >= 0 ? 'green' : 'red'};">R$ ${diferenca.toFixed(2)}</td>`;
 
-            const changePercent = cotacao.changePercent;
-            const changePercentFormatted = typeof changePercent === 'number'
-                ? `${(changePercent * 100).toFixed(2)}%`
-                : 'N/A';
-            const changePercentColor = typeof changePercent === 'number'
-                ? (changePercent >= 0 ? 'green' : 'red')
-                : 'inherit';
-
-            // ATUALIZAÇÃO PRINCIPAL: A ordem das células <td> foi alterada aqui
-            rowHtml = `
-                <tr>
-                    <td>${ativo.ticker}</td>
+            tableBodyHtml += `
+                <tr data-ticker="${ticker}">
+                    <td class="drag-handle">${dragIconSvg}</td>
+                    <td>${ticker}</td>
                     <td>R$ ${cotacao.valor.toFixed(2)}</td>
-                    <td>R$ ${typeof cotacao.precoMaximo === 'number' ? cotacao.precoMaximo.toFixed(2) : 'N/A'}</td>
-                    <td>R$ ${typeof cotacao.precoMinimo === 'number' ? cotacao.precoMinimo.toFixed(2) : 'N/A'}</td>
+                    <td>R$ ${typeof cotacao.precoMaximo === 'number' && !isNaN(cotacao.precoMaximo) ? cotacao.precoMaximo.toFixed(2) : 'N/A'}</td>
+                    <td>R$ ${typeof cotacao.precoMinimo === 'number' && !isNaN(cotacao.precoMinimo) ? cotacao.precoMinimo.toFixed(2) : 'N/A'}</td>
                     <td style="color: ${changePercentColor};">${changePercentFormatted}</td>
-                    <td>${cotacao.data}</td>
-                    <td><input type="number" min="0" step="any" class="quantidadeInput" data-ticker="${ativo.ticker}" value="${ativo.quantidade}" /></td>
-                    <td><input type="number" min="0" step="any" class="precoMedioInput" data-ticker="${ativo.ticker}" value="${ativo.precoMedio}" /></td>
+                    <td>${cotacao.data || 'N/A'}</td>
+                    <td><input type="number" min="0" step="any" class="quantidadeInput" data-ticker="${ticker}" value="${qtdNum}" /></td>
+                    <td><input type="number" min="0" step="any" class="precoMedioInput" data-ticker="${ticker}" value="${pmNum}" /></td>
                     <td>R$ ${totalInvestidoAtivo.toFixed(2)}</td>
                     <td>R$ ${valorAtualAtivo.toFixed(2)}</td>
-                    <td style="color: ${diferenca >= 0 ? 'green' : 'red'};">R$ ${diferenca.toFixed(2)}</td>
-                    <td>
-                        <button class="removerBtn" data-ticker="${ativo.ticker}" aria-label="Remover ${ativo.ticker}">
-                            ${deleteIconSvg}
-                        </button>
-                    </td>
+                    ${diferencaCell}
+                    <td><button class="removerBtn" data-ticker="${ticker}" aria-label="Remover ${ticker}">${deleteIconSvg}</button></td>
                 </tr>`;
         }
-        ativosAgrupados[categoria].push(rowHtml);
     });
+    
+    tabela.innerHTML = tableBodyHtml;
 
-    Object.keys(ativosAgrupados).sort().forEach(categoria => {
-        if (ativosAgrupados.hasOwnProperty(categoria)) {
-            tabela.innerHTML += `
-                <tr class="categoria-header">
-                    <td colspan="12"><h2>${categoria}</h2></td>
-                </tr>
-            `;
-            ativosAgrupados[categoria].forEach(rowHtml => {
-                tabela.innerHTML += rowHtml;
-            });
+    // Atualiza os totais globais no display
+    if(lucroPrejuizoDisplay) lucroPrejuizoDisplay.classList.remove('positivo', 'negativo');
+    if(lucroPrejuizoPorcentagemDisplay) lucroPrejuizoPorcentagemDisplay.classList.remove('positivo', 'negativo');
+
+    if (isDetailsHidden) {
+        if(totalInvestidoDisplay) totalInvestidoDisplay.textContent = '****';
+        if(valorAtualCarteiraDisplay) valorAtualCarteiraDisplay.textContent = '****';
+        if(lucroPrejuizoDisplay) lucroPrejuizoDisplay.textContent = '****';
+        if(lucroPrejuizoPorcentagemDisplay) lucroPrejuizoPorcentagemDisplay.textContent = '****';
+    } else {
+        const lucroPrejuizoGlobal = valorAtualCarteiraGlobal - totalInvestidoGlobal;
+        let plPorcentagem = 0;
+        // Garante que totalInvestidoGlobal é um número e maior que zero para evitar NaN ou Infinity
+        if (typeof totalInvestidoGlobal === 'number' && !isNaN(totalInvestidoGlobal) && totalInvestidoGlobal > 0) {
+            plPorcentagem = (lucroPrejuizoGlobal / totalInvestidoGlobal) * 100;
+        } else if (totalInvestidoGlobal === 0 && lucroPrejuizoGlobal === 0) {
+             plPorcentagem = 0; // Se não há investimento e não há lucro/perda, a % é 0.
         }
-    });
 
-    totalInvestidoDisplay.textContent = `R$ ${totalInvestidoGlobal.toFixed(2)}`;
-    valorAtualCarteiraDisplay.textContent = `R$ ${valorAtualCarteiraGlobal.toFixed(2)}`;
-    const lucroPrejuizoGlobal = valorAtualCarteiraGlobal - totalInvestidoGlobal;
-    lucroPrejuizoDisplay.textContent = `R$ ${lucroPrejuizoGlobal.toFixed(2)}`;
-    lucroPrejuizoDisplay.classList.remove('positivo', 'negativo');
-    if (lucroPrejuizoGlobal > 0) {
-        lucroPrejuizoDisplay.classList.add('positivo');
-    } else if (lucroPrejuizoGlobal < 0) {
-        lucroPrejuizoDisplay.classList.add('negativo');
+
+        if(totalInvestidoDisplay) totalInvestidoDisplay.textContent = (typeof totalInvestidoGlobal === 'number' && !isNaN(totalInvestidoGlobal)) 
+            ? `R$ ${totalInvestidoGlobal.toFixed(2)}` : 'N/A';
+        if(valorAtualCarteiraDisplay) valorAtualCarteiraDisplay.textContent = (typeof valorAtualCarteiraGlobal === 'number' && !isNaN(valorAtualCarteiraGlobal)) 
+            ? `R$ ${valorAtualCarteiraGlobal.toFixed(2)}` : 'N/A';
+        if(lucroPrejuizoDisplay) lucroPrejuizoDisplay.textContent = (typeof lucroPrejuizoGlobal === 'number' && !isNaN(lucroPrejuizoGlobal)) 
+            ? `R$ ${lucroPrejuizoGlobal.toFixed(2)}` : 'N/A';
+        if(lucroPrejuizoPorcentagemDisplay) lucroPrejuizoPorcentagemDisplay.textContent = (typeof plPorcentagem === 'number' && !isNaN(plPorcentagem)) 
+            ? `${plPorcentagem.toFixed(2)}%` : 'N/A';
+
+        if (typeof lucroPrejuizoGlobal === 'number' && !isNaN(lucroPrejuizoGlobal)) {
+            if (lucroPrejuizoGlobal >= 0) {
+                if(lucroPrejuizoDisplay) lucroPrejuizoDisplay.classList.add('positivo');
+                if(lucroPrejuizoPorcentagemDisplay) lucroPrejuizoPorcentagemDisplay.classList.add('positivo');
+            } else {
+                if(lucroPrejuizoDisplay) lucroPrejuizoDisplay.classList.add('negativo');
+                if(lucroPrejuizoPorcentagemDisplay) lucroPrejuizoPorcentagemDisplay.classList.add('negativo');
+            }
+        }
     }
 
-    adicionarListenersInputs();
-    adicionarListenersRemover();
+    // As chamadas abaixo ainda estão desativadas nesta etapa de depuração
+    // adicionarListenersInputs();
+    // adicionarListenersRemover();
+    // initializeSortable();
 }
 
-// --- O restante do arquivo (Listeners, Adicionar Ativo, etc.) permanece o mesmo ---
+// --- Funções Auxiliares (Definições completas) ---
+function initializeSortable() {
+    const tabelaBody = document.getElementById('tabelaCarteira');
+    if (tabelaBody) {
+        new Sortable(tabelaBody, {
+            animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost',
+            onEnd: (evt) => {
+                const rows = evt.target.querySelectorAll('tr[data-ticker]');
+                saveOrder(Array.from(rows).map(row => row.dataset.ticker));
+            }
+        });
+    }
+}
 
 function adicionarListenersInputs() {
     document.querySelectorAll('.quantidadeInput, .precoMedioInput').forEach(input => {
@@ -172,29 +284,21 @@ function adicionarListenersInputs() {
             const linha = e.target.closest('tr');
             const quantidade = parseFloat(linha.querySelector('.quantidadeInput').value);
             const precoMedio = parseFloat(linha.querySelector('.precoMedioInput').value);
-
             if (isNaN(quantidade) || quantidade < 0 || isNaN(precoMedio) || precoMedio < 0) {
                 alert('Quantidade e preço médio devem ser números não negativos.');
-                carregarCarteira(); 
-                return;
+                return carregarCarteira();
             }
-
             try {
                 const res = await fetch(`/api/carteira/${ticker}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ quantidade, precoMedio }),
                 });
-                if (!res.ok) {
-                    const err = await res.json();
-                    alert(err.erro || 'Erro ao atualizar ativo');
-                    carregarCarteira(); 
-                    return;
-                }
+                if (!res.ok) throw new Error('Falha ao atualizar no servidor.');
                 carregarCarteira();
-            } catch (e) {
-                console.error('Erro ao atualizar ativo:', e);
-                alert('Erro ao atualizar ativo. Verifique o console.');
+            } catch (err) {
+                console.error('Erro ao atualizar ativo:', err);
+                alert('Erro ao atualizar ativo.');
             }
         };
     });
@@ -203,127 +307,75 @@ function adicionarListenersInputs() {
 function adicionarListenersRemover() {
     document.querySelectorAll('.removerBtn').forEach(btn => {
         btn.onclick = async (e) => {
-            const targetButton = e.target.closest('.removerBtn');
-            if (!targetButton) return; 
-
-            const ticker = targetButton.dataset.ticker;
-
-            if (!confirm(`Tem certeza que deseja remover ${ticker} da carteira?`)) return;
-
+            const ticker = e.target.closest('.removerBtn').dataset.ticker;
+            if (!confirm(`Tem certeza que deseja remover ${ticker}?`)) return;
             try {
                 const res = await fetch(`/api/carteira/${ticker}`, { method: 'DELETE' });
-                if (!res.ok) {
-                    const err = await res.json();
-                    alert(err.erro || 'Erro ao remover ativo');
+                 if (!res.ok) {
+                     console.error("Erro ao remover ativo no servidor:", await res.text());
+                    alert('Erro ao remover ativo no servidor.');
                     return;
                 }
+                saveOrder(getSavedOrder().filter(t => t !== ticker));
                 carregarCarteira();
-            } catch (e) {
-                console.error('Erro ao remover ativo:', e);
-                alert('Erro ao remover ativo. Verifique o console.');
+            } catch (err) { 
+                console.error('Erro na requisição ao remover ativo:', err);
+                alert('Erro de conexão ao remover ativo.');
             }
         };
     });
 }
 
 async function adicionarAtivo() {
-    const tickerInput = document.getElementById('novoTicker');
-    const qtdInput = document.getElementById('novaQuantidade');
-    const precoMedioInput = document.getElementById('novoPrecoMedio');
-    const tipoAtivoSelect = document.getElementById('novoTipoAtivo');
-
-    const ticker = tickerInput.value.trim().toUpperCase();
-    const quantidade = parseFloat(qtdInput.value);
-    const precoMedio = parseFloat(precoMedioInput.value);
-    const type = tipoAtivoSelect.value;
-
-    if (!ticker) {
-        alert('Por favor, informe o Ticker do ativo.');
-        return;
-    }
-    if (isNaN(quantidade) || quantidade <= 0) {
-        alert('Quantidade inválida. Deve ser um número positivo.');
-        return;
-    }
-    if (isNaN(precoMedio) || precoMedio <= 0) {
-        alert('Preço médio inválido. Deve ser um número positivo.');
-        return;
-    }
-    if (!type || type === '') {
-        alert('Por favor, selecione o tipo de ativo.');
-        return;
-    }
-
+    const tickerInput = document.getElementById('novoTicker'), qtdInput = document.getElementById('novaQuantidade'), precoMedioInput = document.getElementById('novoPrecoMedio'), tipoAtivoSelect = document.getElementById('novoTipoAtivo');
+    const ticker = tickerInput.value.trim().toUpperCase(), quantidade = parseFloat(qtdInput.value), precoMedio = parseFloat(precoMedioInput.value), type = tipoAtivoSelect.value;
+    if (!ticker || isNaN(quantidade) || isNaN(precoMedio) || !type) return alert('Todos os campos são obrigatórios.');
+    if (quantidade <= 0 || precoMedio <= 0) return alert('Quantidade e preço médio devem ser números positivos.');
     try {
-        const res = await fetch('/api/carteira', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ticker, quantidade, precoMedio, type }),
-        });
-
+        const res = await fetch('/api/carteira', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticker, quantidade, precoMedio, type }) });
         if (!res.ok) {
-            const err = await res.json();
-            alert(err.erro || `Erro desconhecido ao adicionar ativo. Status: ${res.status}`);
-            return;
+            const errData = await res.json();
+            return alert(errData.erro || 'Erro desconhecido ao adicionar ativo.');
         }
-
-        tickerInput.value = '';
-        qtdInput.value = '';
-        precoMedioInput.value = '';
-        tipoAtivoSelect.value = 'AÇÃO';
+        const order = getSavedOrder();
+        if (!order.includes(ticker)) order.push(ticker);
+        saveOrder(order);
+        tickerInput.value = ''; qtdInput.value = ''; precoMedioInput.value = ''; tipoAtivoSelect.value = 'AÇÃO';
         carregarCarteira();
         alert('Ativo adicionado com sucesso!');
-    } catch (e) {
-        console.error('Erro ao adicionar ativo:', e);
-        alert('Erro ao adicionar ativo. Verifique o console para mais detalhes.');
+    } catch (e) { 
+        console.error('Erro na requisição ao adicionar ativo:', e);
+        alert('Erro de conexão ao adicionar ativo.');
     }
 }
 
 function updateToggleButtonIcon(isHidden) {
-    const toggleViewModeBtn = document.getElementById('toggleViewModeBtn');
-    if (!toggleViewModeBtn) return;
-
-    toggleViewModeBtn.innerHTML = ''; 
-
-    const parser = new DOMParser();
-    let svgDoc;
-
-    if (isHidden) {
-        svgDoc = parser.parseFromString(eyeClosedSvg, "image/svg+xml");
-        toggleViewModeBtn.setAttribute('aria-label', 'Mostrar detalhes da carteira');
-    } else {
-        svgDoc = parser.parseFromString(eyeOpenSvg, "image/svg+xml");
-        toggleViewModeBtn.setAttribute('aria-label', 'Ocultar detalhes da carteira');
+    const btn = document.getElementById('toggleViewModeBtn');
+    if (btn) {
+        btn.innerHTML = isHidden ? eyeClosedSvg : eyeOpenSvg;
+        btn.setAttribute('aria-label', isHidden ? 'Mostrar detalhes' : 'Ocultar detalhes');
     }
-    
-    toggleViewModeBtn.appendChild(svgDoc.documentElement);
 }
 
+// --- Inicialização da Página ---
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('addTickerBtn').addEventListener('click', adicionarAtivo);
-
-    const toggleViewModeBtn = document.getElementById('toggleViewModeBtn');
-    if (toggleViewModeBtn) {
+    document.getElementById('addTickerBtn')?.addEventListener('click', adicionarAtivo);
+    const btn = document.getElementById('toggleViewModeBtn');
+    if (btn) {
         const body = document.body;
-        const currentViewMode = localStorage.getItem('carteiraViewMode');
-
-        if (currentViewMode === 'hide-details') {
-            body.classList.add('hide-details');
-            updateToggleButtonIcon(true);
-        } else {
-            body.classList.remove('hide-details');
-            updateToggleButtonIcon(false);
-        }
-
-        toggleViewModeBtn.addEventListener('click', () => {
-            body.classList.toggle('hide-details');
-            const isHidden = body.classList.contains('hide-details');
-            updateToggleButtonIcon(isHidden);
+        let isHidden = localStorage.getItem('carteiraViewMode') === 'hide-details';
+        body.classList.toggle('hide-details', isHidden);
+        updateToggleButtonIcon(isHidden);
+        
+        btn.addEventListener('click', () => {
+            body.classList.toggle('hide-details'); 
+            isHidden = body.classList.contains('hide-details'); 
             localStorage.setItem('carteiraViewMode', isHidden ? 'hide-details' : 'show-details');
+            updateToggleButtonIcon(isHidden);
+            carregarCarteira(); 
         });
     }
-
     carregarCarteira(); 
 });
 
-setInterval(carregarCarteira, 60000);
+// setInterval(carregarCarteira, 60000); // Ainda desativado

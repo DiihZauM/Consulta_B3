@@ -1,295 +1,273 @@
+/* --- GERAL E LAYOUT --- */
+:root {
+    --cor-fundo: #121212;
+    --cor-superficie: #1e1e1e;
+    --cor-borda: #444;
+    --cor-texto-principal: #e0e0e0;
+    --cor-texto-secundario: #a0a0a0;
+    --cor-primaria: #007bff;
+    --cor-verde: #28a745;
+    --cor-vermelho: #dc3545;
+}
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f4f6f8;
-    color: #333;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: var(--cor-fundo);
+    color: var(--cor-texto-principal);
     margin: 0;
-    padding: 2rem;
+    padding: 0 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: var(--cor-superficie);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* --- CABEÇALHO PRINCIPAL --- */
+.main-header {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--cor-borda);
+    padding-bottom: 15px;
+    margin-bottom: 20px;
 }
 
-h1 {
-    color: #0050b3;
-    margin-bottom: 1rem;
+.main-header h1 {
+    color: var(--cor-texto-principal);
+    margin: 0;
+    font-size: 2em;
 }
 
-/* Container do formulário de adicionar ativo */
-#adicionarAtivo {
-    display: flex;          /* Transforma em um container flexbox */
-    align-items: center;    /* Alinha itens verticalmente no centro */
-    flex-wrap: wrap;        /* Permite que os itens quebrem para a próxima linha em telas menores */
-    gap: 10px;              /* Espaçamento entre os itens */
-    margin-bottom: 1rem;    /* Espaço abaixo do formulário */
-    max-width: 900px;       /* Limita a largura para melhor visualização */
-    justify-content: center; /* Centraliza horizontalmente em telas maiores */
-}
-
-#adicionarAtivo input,
-#adicionarAtivo select,
-#adicionarAtivo button {
-    padding: 0.5rem;
-    font-size: 1rem;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    margin: 0; /* Limpa margens padrão para o gap do flexbox controlar */
-}
-
-#adicionarAtivo input {
-    width: 150px;
-}
-
-#adicionarAtivo select {
-    width: 160px; /* Ajuste se necessário */
-    cursor: pointer;
-}
-
-#adicionarAtivo button {
-    padding: 0.6rem 1.2rem;
+.view-mode-btn {
+    background: none;
     border: none;
-    background-color: #0050b3;
-    color: white;
     cursor: pointer;
-    transition: background-color 0.3s;
+    padding: 0;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
 }
-
-#adicionarAtivo button:hover {
-    background-color: #003d80;
+.view-mode-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
 }
-
-/* Estilo para o botão de toggle (o ícone de olho) */
-#toggleViewModeBtn {
-    padding: 0.6rem; 
-    border-radius: 6px;
-    border: none;
-    background-color: #28a745; /* Cor VERDE padrão para indicar "ativo/visível" */
-    color: white; /* Cor do ícone */
-    cursor: pointer;
-    transition: background-color 0.3s;
-
-    display: flex;          
-    justify-content: center; 
-    align-items: center;    
-    width: 40px;            
-    height: 40px;           
-}
-
-#toggleViewModeBtn:hover {
-    background-color: #218838; /* Verde mais escuro no hover */
-}
-
-/* Quando os detalhes estão ocultos, o botão de toggle fica VERMELHO */
-body.hide-details #toggleViewModeBtn {
-    background-color: #dc354f; /* Cor VERMELHA para indicar "oculto" */
-}
-
-body.hide-details #toggleViewModeBtn:hover {
-    background-color: #c82333; /* Vermelho mais escuro no hover */
-}
-
-#toggleViewModeBtn svg {
-    fill: currentColor; 
-    width: 24px; 
+.view-mode-btn svg {
+    width: 24px;
     height: 24px;
 }
 
-
-table {
-    margin-top: 2rem;
-    border-collapse: collapse;
-    width: 100%;
-    max-width: 900px;
-    background-color: #fff; /* Fundo branco para a tabela */
-    box-shadow: 0 0 10px rgba(0,0,0,0.1); /* Sombra suave */
-    border-radius: 8px; /* Cantos arredondados */
-    overflow: hidden; /* Garante que os cantos arredondados funcionem com overflow */
+/* --- SEÇÃO DE TOTAIS --- */
+.totais-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    margin-bottom: 30px;
 }
 
-thead th {
-    background-color: #0050b3;
-    color: white;
-    padding: 0.7rem;
+.total-item {
     text-align: center;
-    border-bottom: 2px solid #003d80;
+    padding: 10px 0;
 }
 
-tbody td {
-    border-bottom: 1px solid #eee; /* Linhas mais claras entre células */
-    padding: 0.5rem;
-    white-space: nowrap;
-    text-align: right; /* Alinha números à direita */
+.total-label {
+    display: block;
+    font-size: 0.9em;
+    color: var(--cor-texto-secundario);
+    margin-bottom: 8px;
 }
 
-tbody tr:nth-child(even) {
-    background-color: #f9f9f9; /* Fundo zebrado para linhas pares */
+.total-value {
+    font-size: 1.6em;
+    font-weight: bold;
+}
+
+.total-value.positivo {
+    color: var(--cor-verde);
+}
+
+.total-value.negativo {
+    color: var(--cor-vermelho);
+}
+
+/* --- TABELA DE ATIVOS --- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+}
+
+th, td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--cor-borda);
+    text-align: left;
+    vertical-align: middle;
+}
+
+th {
+    background-color: #2a2a2a;
+    font-weight: bold;
+    color: var(--cor-texto-secundario);
 }
 
 tbody tr:hover {
-    background-color: #f0f0f0; /* Destaca linha ao passar o mouse */
+    background-color: #2c2c2c;
 }
 
-/* Estilos para os campos de input dentro da tabela */
-input.quantidadeInput,
-input.precoMedioInput {
-    width: 80px;
-    padding: 0.3rem;
-    font-size: 1rem;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    text-align: right; /* Garante que o texto digitado também se alinha à direita */
-}
-
-/* Estilo para o botão de remover (ícone de lixeira) */
-button.removerBtn {
-    background-color: #d9534f; /* Vermelho */
-    border: none;
-    color: white; /* Cor do ícone */
-    padding: 0.4rem; /* Padding menor para botões de ícone */
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 32px; /* Tamanho fixo para o botão */
-    height: 32px;
-}
-
-button.removerBtn:hover {
-    background-color: #c9302c;
-}
-
-button.removerBtn svg {
-    fill: currentColor;
-    width: 20px; /* Garante o tamanho do SVG */
-    height: 20px;
-}
-
-/* Estilos para o cabeçalho de categoria */
+/* --- CABEÇALHO DE CATEGORIA (AJUSTES PARA ALINHAMENTO VERTICAL E HORIZONTAL) --- */
 .categoria-header td {
-    background-color: #e0e0e0; 
-    font-weight: bold;
-    text-align: left; 
-    padding: 10px;
-    border-bottom: 2px solid #ccc;
-    border-top: 1px solid #ccc; /* Linha superior para separar visualmente */
-    color: #0050b3;
+    background-color: #333;
+    padding: 0;             
+    vertical-align: middle; 
+    border-bottom: 2px solid var(--cor-primaria); 
 }
-.categoria-header h2 {
+
+.categoria-header-content { /* O div interno com Flexbox */
+    display: flex;
+    justify-content: space-between; /* Para empurrar nome para esquerda e total para direita */
+    align-items: baseline;          /* Para alinhar texto pela base */
+    padding: 10px 15px;
+    width: 98%;
+}
+
+.categoria-header-content h2 {
     margin: 0;
-    font-size: 1.2em;
+    font-size: 1.1em; /* IGUALADO ao .categoria-total-valor para melhor alinhamento de baseline */
+    color: var(--cor-primaria);
+    font-weight: bold;
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis;
+     
+    /* margin-right: 15px; /* Removido - space-between deve cuidar disso */
 }
 
-/* Regras para ocultar as colunas quando 'hide-details' está no body */
-body.hide-details #thQuantidade,
-body.hide-details #thPrecoMedio,
-body.hide-details #thTotalInvestido,
-body.hide-details #thValorAtual {
-    display: none; /* Esconde os cabeçalhos das colunas */
+.categoria-total-valor { /* O span com o subtotal */
+    font-size: 1.1em; /* IGUALADO ao h2 para melhor alinhamento de baseline */
+    font-weight: bold;
+    color: var(--cor-texto-principal);
+    white-space: nowrap;
+   /* Para não ser esmagado pelo nome da categoria se for longo */
+    /* margin-left: auto; /* Removido - space-between deve cuidar disso */
 }
 
-body.hide-details table tbody td:nth-child(6), /* Coluna Quantidade (6ª td) */
-body.hide-details table tbody td:nth-child(7), /* Coluna Preço Médio (7ª td) */
-body.hide-details table tbody td:nth-child(8), /* Coluna Total Investido (8ª td) */
-body.hide-details table tbody td:nth-child(9)  /* Coluna Valor Atual (9ª td) */
-{
-    display: none; /* Esconde as células de dados correspondentes */
+
+/* --- DRAG AND DROP --- */
+.drag-handle-header {
+    width: 30px;
+    padding-left: 10px;
+    padding-right: 10px;
 }
-
-/* Media Queries para responsividade */
-@media (max-width: 768px) {
-    body {
-        padding: 1rem;
-    }
-
-    #adicionarAtivo {
-        flex-direction: column; /* Em telas menores, os itens do formulário ficam em coluna */
-        align-items: stretch; /* Estica os itens para preencher a largura */
-        gap: 0.5rem;
-    }
-
-    #adicionarAtivo input,
-    #adicionarAtivo select,
-    #adicionarAtivo button,
-    #toggleViewModeBtn { 
-        width: 100%; /* Ocupa a largura total */
-        box-sizing: border-box; /* Inclui padding e border na largura */
-        margin: 0; /* Remove margens extras */
-    }
-
-    table {
-        font-size: 0.8rem;
-        min-width: unset; /* Remove min-width em telas pequenas */
-    }
-
-    thead th, tbody td {
-        padding: 0.3rem; /* Menos padding em telas menores */
-    }
-
-    /* Ajuste para inputs dentro da tabela em telas pequenas */
-    input.quantidadeInput,
-    input.precoMedioInput {
-        width: 60px;
-        font-size: 0.8rem;
-    }
-}
-
-#resumoCarteira {
-    background-color: #e6f7ff; /* Um azul claro */
-    border: 1px solid #91d5ff; /* Borda azul mais escura */
-    border-radius: 8px;
-    padding: 1rem 2rem;
-    margin-bottom: 1.5rem;
-    width: 100%;
-    max-width: 900px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+.drag-handle {
+    cursor: grab;
+    width: 20px; 
     text-align: center;
 }
+.drag-handle:active {
+    cursor: grabbing;
+}
+.sortable-ghost {
+    opacity: 0.4;
+    background-color: var(--cor-primaria);
+}
 
-#resumoCarteira p {
-    margin: 0.5rem 0;
-    font-size: 1.1rem;
+/* --- FORMULÁRIO DE ADIÇÃO --- */
+.form-container {
+    padding: 25px;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    margin-top: 20px; 
+}
+
+.form-container h2 {
+    margin-top: 0;
+    border-bottom: 1px solid var(--cor-borda);
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+    font-size: 1.5em;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    align-items: end; 
+}
+
+input[type="text"], input[type="number"], select, button#addTickerBtn {
+    width: 100%;
+    padding: 12px 15px;
+    background-color: #333;
+    border: 1px solid var(--cor-borda);
+    border-radius: 4px;
+    color: var(--cor-texto-principal);
+    font-size: 1em;
+    box-sizing: border-box;
+}
+select {
+    height: calc( (1em * 1.5) + (12px * 2) + (1px * 2) ); 
+}
+
+
+button#addTickerBtn {
+    background-color: var(--cor-primaria);
+    color: white;
     font-weight: bold;
-    color: #004085; /* Azul escuro para o texto */
+    cursor: pointer;
+    transition: background-color 0.2s;
+    grid-column: span 1;
 }
 
-#resumoCarteira p span {
-    font-weight: normal;
-    color: #333; /* Volta para a cor normal para os valores */
+@media (min-width: 1000px) { 
+    .form-grid { grid-template-columns: repeat(5, 1fr); }
 }
 
-/* Estilo para lucro/prejuízo no resumo */
-#lucroPrejuizoDisplay {
-    font-weight: bold;
-}
-#lucroPrejuizoDisplay.positivo {
-    color: green;
-}
-#lucroPrejuizoDisplay.negativo {
-    color: red;
+
+button#addTickerBtn:hover {
+    background-color: #0056b3;
 }
 
-/* ... (seu CSS existente) ... */
-
-/* Regra para ocultar a seção de resumo da carteira */
-body.hide-details #resumoCarteira {
-    display: none !important; /* Esconde o bloco completo de resumo */
+.removerBtn {
+    background-color: var(--cor-vermelho);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 6px 8px;
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+.removerBtn svg {
+    width: 18px;
+    height: 18px;
+}
+.removerBtn:hover {
+    background-color: #a71d2a;
 }
 
-/* ... (suas regras existentes para ocultar colunas da tabela) ... */
-body.hide-details #thQuantidade,
-body.hide-details #thPrecoMedio,
-body.hide-details #thTotalInvestido,
-body.hide-details #thValorAtual {
-    display: none !important;
+/* --- LÓGICA PARA OCULTAR/MOSTRAR DETALHES (COLUNAS) --- */
+body.hide-details th:nth-child(8), /* Quantidade */
+body.hide-details td:nth-child(8),
+body.hide-details th:nth-child(9), /* Preço Médio */
+body.hide-details td:nth-child(9),
+body.hide-details th:nth-child(10), /* Total Investido */
+body.hide-details td:nth-child(10),
+body.hide-details th:nth-child(11), /* Valor Atual */
+body.hide-details td:nth-child(11) {
+    display: none;
 }
-
-body.hide-details table tbody td:nth-child(6),
-body.hide-details table tbody td:nth-child(7),
-body.hide-details table tbody td:nth-child(8),
-body.hide-details table tbody td:nth-child(9) {
-    display: none !important;
-}
-
-/* ... (restante do seu CSS) ... */
+/* A coluna Diferença R$ (12) e os subtotais de categoria terão seu CONTEÚDO trocado por '****' via JS. */

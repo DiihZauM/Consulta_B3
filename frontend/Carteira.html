@@ -1,60 +1,82 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8" />
-    <title>Minha Carteira</title>
-    <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Carteira de Investimentos</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Minha Carteira</h1>
 
-    <div id="resumoCarteira">
-        <p>Total Investido: <span id="totalInvestidoDisplay">R$ 0,00</span></p>
-        <p>Valor Atual da Carteira: <span id="valorAtualCarteiraDisplay">R$ 0,00</span></p>
-        <p>Lucro/Prejuízo: <span id="lucroPrejuizoDisplay">R$ 0,00</span></p>
-        <p>Lucro/Prejuízo: <span id="lucroPrejuizoPorcentagem">0%</span></p>
-    </div>
+    <header class="main-header">
+        <h1>Minha Carteira</h1>
+        <button id="toggleViewModeBtn" class="view-mode-btn" aria-label="Ocultar detalhes da carteira"></button>
+    </header>
 
-    <div id="adicionarAtivo">
-        <input type="text" id="novoTicker" placeholder="Ticker (ex: PETR4)" />
-        <input type="number" min="0" step="any" id="novaQuantidade" placeholder="Quantidade" />
-        <input type="number" min="0" step="any" id="novoPrecoMedio" placeholder="Preço Médio" />
-        
-        <select id="novoTipoAtivo">
-            <option value="AÇÃO">Ação</option>
-            <option value="FII">FII</option>
-            <option value="ETF">ETF</option>
-            <option value="BDR">BDR</option>
-            <option value="CRIPTO">Criptomoeda</option>
-            <option value="OUTRO">Outro</option>
-        </select>
+    <main class="container">
+        <div id="displayTotais" class="totais-container">
+            <div class="total-item">
+                <span class="total-label">Total Investido</span>
+                <span id="totalInvestidoDisplay" class="total-value">R$ 0,00</span>
+            </div>
+            <div class="total-item">
+                <span class="total-label">Valor Atual da Carteira</span>
+                <span id="valorAtualCarteiraDisplay" class="total-value">R$ 0,00</span>
+            </div>
+            <div class="total-item">
+                <span class="total-label">Lucro/Prejuízo (R$)</span>
+                <span id="lucroPrejuizoDisplay" class="total-value">R$ 0,00</span>
+            </div>
+            <div class="total-item">
+                <span class="total-label">Lucro/Prejuízo (%)</span>
+                <span id="lucroPrejuizoPorcentagemDisplay" class="total-value">0.00%</span>
+            </div>
+        </div>
 
-        <button id="addTickerBtn">Adicionar Ativo</button>
-        
-        <button id="toggleViewModeBtn" aria-label="Alternar visualização de detalhes da carteira"></button> 
-    </div>
+        <div id="adicionarAtivo" class="form-container">
+            <h2>Adicionar Novo Ativo</h2>
+            <div class="form-grid">
+                <input type="text" id="novoTicker" placeholder="Ticker do Ativo (ex: PETR4)">
+                <input type="number" id="novaQuantidade" placeholder="Quantidade" min="0" step="any">
+                <input type="number" id="novoPrecoMedio" placeholder="Preço Médio (R$)" min="0" step="any">
+                <select id="novoTipoAtivo">
+                    <option value="AÇÃO">Ação</option>
+                    <option value="FII">FII</option>
+                    <option value="ETF">ETF</option>
+                    <option value="BDR">BDR</option>
+                    <option value="CRIPTO">Cripto</option>
+                    <option value="OUTRO">Outro</option>
+                </select>
+                <button id="addTickerBtn">Adicionar</button>
+            </div>
+        </div>
 
-    <table id="tabelaCarteira">
-        <thead>
-            <tr>
-                <th>Ticker</th>
-                <th>Preço Atual</th>
-                <th>Máximo</th>
-                <th>Mínimo</th>
-                <th>Variação do dia</th>
-                <th>Atualizado em</th>
-                <th id="thQuantidade" class="toggle-column">Quantidade</th>
-                <th id="thPrecoMedio" class="toggle-column">Preço Médio</th>
-                <th id="thTotalInvestido" class="toggle-column">Total Investido</th>
-                <th id="thValorAtual" class="toggle-column">Valor Atual</th>
-                <th>Diferença</th>
-                <th>Ação</th>
-            </tr>
-        </thead>
-        <tbody>
-            </tbody>
-    </table>
+        <table>
+            <thead>
+                <tr>
+                    <th class="drag-handle-header"></th>
+                    <th>Ticker</th>
+                    <th>Preço Atual</th>
+                    <th>Máx. Dia</th>
+                    <th>Mín. Dia</th>
+                    <th>Variação (Dia)</th>
+                    <th>Atualizado em</th>
+                    <th>Quantidade</th>
+                    <th>Preço Médio</th>
+                    <th>Total Investido</th>
+                    <th>Valor Atual</th>
+                    <th>Diferença R$</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaCarteira">
+                </tbody>
+        </table>
+    </main>
 
-    <script src="script.js"></script>
+    <script src="script.js"></script> 
 </body>
 </html>
