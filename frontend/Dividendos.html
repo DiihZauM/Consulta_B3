@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dividendos - Consulta</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="main-header">
+        <h1>Dividendos</h1>
+        <a href="carteira.html">Voltar para Carteira</a>
+    </header>
+
+    <main class="container">
+        <div id="projecaoDividendosCarteira" class="form-container" style="margin-bottom: 40px;">
+            <h2>Projeção de Dividendos da Carteira para 2025</h2>
+            <div id="projecaoMensalConteudo">
+                <p style="text-align:center;">Carregando projeção mensal...</p> 
+                </div>
+            <div style="text-align: right; margin-top: 20px; padding-top:15px; border-top: 1px solid var(--cor-borda); font-size: 1.2em;">
+                <strong>Total Anual Projetado (2025):</strong> 
+                <span id="totalAnualProjetado2025" style="color: var(--cor-verde); font-weight:bold;">R$ 0,00</span>
+            </div>
+        </div>
+
+        <div id="buscarDividendosFormContainer" class="form-container">
+            <h2>Buscar Histórico de Dividendos por Ativo</h2>
+            <form id="dividendSearchForm" class="form-grid"> 
+                <input type="text" id="tickerInputDividendos" placeholder="Digite o Ticker (ex: PETR4)" required>
+                <button type="submit" id="buscarDividendosBtn">Buscar Histórico</button>
+            </form>
+        </div>
+
+        <div id="dividendResultsArea" style="margin-top: 30px; display: none;">
+            <h3 id="dividendResultTickerName" style="margin-bottom: 15px; border-bottom: 1px solid var(--cor-borda); padding-bottom: 10px;">Histórico para...</h3>
+            <div id="dividendResultListContainer">
+                <table id="dividendsTable">
+                    <thead>
+                        <tr>
+                            <th>Data Pagamento</th>
+                            <th>Valor (R$)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dividendsTableBody">
+                        </tbody>
+                </table>
+                <p id="dividendResultNoData" style="display:none; text-align: center; margin-top: 20px;">Nenhum dividendo encontrado para este ativo no período consultado (últimos 5 anos).</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
